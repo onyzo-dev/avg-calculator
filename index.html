@@ -170,6 +170,11 @@
 
     .input-row input::placeholder { color: var(--text-muted); }
 
+    /* 숫자 입력 화살표 제거 */
+    .input-row input::-webkit-outer-spin-button,
+    .input-row input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    .input-row input[type=number] { -moz-appearance: textfield; }
+
     .divider {
       display: flex;
       align-items: center;
@@ -329,7 +334,7 @@
       </div>
     </div>
 
-    <button class="btn" id="calcBtn">계산하기</button>
+
 
     <div class="result-box" id="resultBox">
       <div class="result-main">
@@ -353,30 +358,38 @@
   </div>
 
   <script>
-    document.getElementById('calcBtn').addEventListener('click', function() {
+    function calculate() {
       const oldPrice = Number(document.getElementById('oldPrice').value) || 0;
       const oldQty   = Number(document.getElementById('oldQty').value)   || 0;
       const newPrice = Number(document.getElementById('newPrice').value) || 0;
       const newQty   = Number(document.getElementById('newQty').value)   || 0;
 
-      const totalOld   = oldPrice * oldQty;
-      const totalNew   = newPrice * newQty;
-      const totalAmt   = totalOld + totalNew;
-      const totalQty   = oldQty + newQty;
-      const avgPrice   = totalQty > 0 ? totalAmt / totalQty : 0;
+      const totalOld = oldPrice * oldQty;
+      const totalNew = newPrice * newQty;
+      const totalAmt = totalOld + totalNew;
+      const totalQty = oldQty + newQty;
+      const avgPrice = totalQty > 0 ? totalAmt / totalQty : 0;
 
       document.getElementById('resultAvg').textContent   = Math.round(avgPrice).toLocaleString();
       document.getElementById('resultQty').textContent   = totalQty.toLocaleString();
       document.getElementById('resultTotal').textContent = totalAmt.toLocaleString();
+    }
 
-      const box = document.getElementById('resultBox');
-      box.classList.add('visible');
-    });
-
-    // Enter key support
+    // 숫자만 입력 허용 + 자동계산
     document.querySelectorAll('input').forEach(function(input) {
       input.addEventListener('keydown', function(e) {
-        if (e.key === 'Enter') document.getElementById('calcBtn').click();
+        const allowed = ['Backspace','Delete','ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Tab'];
+        if (!allowed.includes(e.key) && !/^\d$/.test(e.key)) {
+          e.preventDefault();
+        }
+      });
+      input.addEventListener('input', calculate);
+      input.addEventListener('paste', function(e) {
+        e.preventDefault();
+        const text = (e.clipboardData || window.clipboardData).getData('text');
+        const onlyNums = text.replace(/[^\d]/g, '');
+        if (onlyNums) document.execCommand('insertText', false, onlyNums);
+        calculate();
       });
     });
   </script>
